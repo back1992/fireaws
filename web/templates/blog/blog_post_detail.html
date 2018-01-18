@@ -1,0 +1,176 @@
+{% extends "blog/blog_post_list.html" %}
+{% load mezzanine_tags comment_tags keyword_tags rating_tags i18n disqus_tags  static  myfilters %}
+
+{% block meta_title %}{{ blog_post.meta_title }}{% endblock %}
+
+{% block extra_head %}
+{#    <link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}BookBlock/css/default.css"/>#}
+{#    <link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}BookBlock/css/bookblock.css"/>#}
+    <!-- custom demo style -->
+{#    <link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}BookBlock/css/demo1.css"/>#}
+{#    <script src="{{ STATIC_URL }}BookBlock/js/modernizr.custom.js"></script>#}
+{% endblock %}
+{% block meta_keywords %}{% metablock %}
+    {% keywords_for blog_post as tags %}
+    {% for tag in tags %}{% if not forloop.first %}, {% endif %}{{ tag }}{% endfor %}
+{% endmetablock %}{% endblock %}
+
+{% block meta_description %}{% metablock %}
+    {{ blog_post.description }}
+{% endmetablock %}{% endblock %}
+
+{% block title %}
+    {% editable blog_post.title %}{{ blog_post.title }}{% endeditable %}
+{% endblock %}
+
+{% block breadcrumb_menu %}
+    {{ block.super }}
+    <li class="active">{{ blog_post.title }}</li>
+{% endblock %}
+
+{% block main %}
+
+    <section class="hbox stretch">
+        <aside class="aside-lg bg-light lter b-r">
+            <section class="vbox">
+                <section class="scrollable padder-v">
+                    <div class="wrapper">
+                        <div class="text-center m-b m-t">
+                                {% block blog_post_detail_featured_image %}
+                                    <img class="img-responsive"
+                                         src="{{ blog_post|get_cover_url }} " alt=""/>
+
+                                {% endblock %}
+                        </div>
+                        <div>
+                            <div class="h3 m-t-xs m-b-xs">{{ blog_post|get_chinese_title }} </div>
+                            <small class="text-muted">{{ blog_post.title }}
+                            </small>
+                        </div>
+                        <div>
+                            {#                            <p>作者：{{ blog_post|get_author }}</p>#}
+                            {% keywords_for blog_post as tags %}
+                            {#                                <div class="clearfix m-b-lg">#}
+                            <a href="/" class="thumb-sm pull-left m-r"></a>
+
+                            {% if tags %}
+                                <ul class="list-inline tags">
+                                    {% trans "Tags" %}:
+                                    {% spaceless %}
+                                        {% for tag in tags %}
+                                            <li><a href="{% url "blog_post_list_tag" tag.slug %}"
+                                                   class="badge bg-light">{{ tag }}</a>{% if not forloop.last %}
+                                                , {% endif %}</li>
+                                        {% endfor %}
+                                    {% endspaceless %}
+                                </ul>
+                            {% endif %}
+                            <small class="text-uc text-xs text-muted">内容简介</small>
+                            <p>
+                                <small class="text-uc text-xs">{{ blog_post.content|safe }}</small>
+                            </p>
+                            <div class="line"></div>
+                            <small class="text-uc text-xs text-muted">connection</small>
+                            <p class="m-t-sm">
+                                <a href="#" class="btn btn-rounded btn-twitter btn-icon"><i
+                                        class="fa fa-twitter"></i></a>
+                                <a href="#" class="btn btn-rounded btn-facebook btn-icon"><i
+                                        class="fa fa-facebook"></i></a>
+                                <a href="#" class="btn btn-rounded btn-gplus btn-icon"><i
+                                        class="fa fa-google-plus"></i></a>
+                            </p>
+                        </div>
+                    </div>
+                    <div class="panel">
+                        <h4 class="font-thin padder text-center">最新评论</h4>
+                        {% block blog_post_detail_comments %}
+                            {% if blog_post.allow_comments %}{% comments_for blog_post %}{% endif %}
+                        {% endblock %}
+                    </div>
+                </section>
+            </section>
+        </aside>
+        <aside class="bg-white">
+            <section class="vbox">
+                <header class="panel-heading text-center" id="lrc-title">
+                    章节内容
+                    <i class="fa fa-info-sign text-muted" data-toggle="tooltip" data-placement="bottom"
+                       data-title="ajax to load the data."></i>
+                </header>
+                <section class="scrollable">
+                    <div class="panel panel-default">
+                        <div class="panel-body, jp-content" id="lrc-content">
+
+                        </div>
+                    </div>
+                </section>
+            </section>
+        </aside>
+    </section>
+
+{% endblock %}
+
+{% block footer_js %}
+
+    {% include "includes/footer_scripts.html" %}
+    <script type="text/javascript">
+
+        $(document).ready(function () {
+            var mylist = [
+                {% chapters_for blog_post as chapter_list %}
+                {% for chapter in chapter_list %}
+                    {
+                        {#                    title: "{{ chapter.title|cut:" "  }}",#}
+                        title: "{{ chapter.title }}",
+                        artist: "{{ chapter.bookid.author }}",
+                        content: "{{ chapter.content|linebreaksbr }}",
+                        mp3: "{{ chapter.audio_file.url }}",
+                    },
+                {% endfor %}
+            ]
+
+            {#        (typeof mylist != 'undefined') ? mylist = mylist : mylist = []#}
+            var myPlaylist = new jPlayerPlaylist({
+                jPlayer: "#jplayer_N",
+                cssSelectorAncestor: "#jp_container_N"
+            }, mylist, {
+                playlistOptions: {
+                    enableRemoveControls: true,
+                    autoPlay: true
+                },
+                swfPath: "js/jPlayer",
+                supplied: "webmv, ogv, m4v, oga, mp3",
+                smoothPlayBar: true,
+                keyEnabled: true,
+                audioFullScreen: false
+            });
+
+            $("#jplayer_1").jPlayer({
+                ready: function () {
+                    $(this).jPlayer("setMedia", {
+                        title: "Big Buck Bunny",
+                        m4v: "http://flatfull.com/themes/assets/video/big_buck_bunny_trailer.m4v",
+                        ogv: "http://flatfull.com/themes/assets/video/big_buck_bunny_trailer.ogv",
+                        webmv: "http://flatfull.com/themes/assets/video/big_buck_bunny_trailer.webm",
+                        {#                    poster: "images/m41.jpg"#}
+                    });
+                },
+                swfPath: "js",
+                supplied: "webmv, ogv, m4v",
+                size: {
+                    width: "100%",
+                    height: "auto",
+                    cssClass: "jp-video-360p"
+                },
+                globalVolume: true,
+                smoothPlayBar: true,
+                keyEnabled: true
+            });
+
+        });
+    </script>
+
+{% endblock %}
+{% block sidecontent %}
+
+{% endblock %}

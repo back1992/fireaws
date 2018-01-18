@@ -1,0 +1,22 @@
+server {
+    client_max_body_size 800M;
+    listen 80;
+    server_name ec2-52-80-16-175.cn-north-1.compute.amazonaws.com.cn;
+    charset utf-8;
+
+    location /static {
+        alias /usr/src/app/static;
+    }
+
+    location /static/media {
+        alias /usr/src/app/static/media;
+    }
+    
+    location / {
+        proxy_pass http://web:8000;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    }
+
+}
